@@ -18,8 +18,10 @@ Building
 
 The [CMake-Arduino](https://github.com/queezythegreat/arduino-cmake) build system
 is used for this project. You will require a working version of CMake 2.8+ to 
-be installed on your system. Edit CMakeLists.txt for your board and serial port,
-then execute the following to configure:
+be installed on your system. Edit CMakeLists.txt for your board information and
+serial port.
+
+### Command Line
 
     mkdir build
     cd build
@@ -29,6 +31,24 @@ You can build the code and upload to your Arduino with
 
     make
     make navlights-upload 
+
+### Eclipse
+
+Note that the source directory should be a sibling of the eclipse project directory,
+e.g., with the code in this structure:
+
+    <root>/navlights
+    <root>/eclipse
+
+The following commands will generate an IDE file. Note that 'Unix Makefiles' doesn't seem
+to work correctly for Eclipse/Arduino combo, so you will need the
+(ninja)[http://martine.github.com/ninja] build system installed.
+
+    cd eclipse
+    cmake -G "Eclipse CDT4 - Ninja" ../navlights 
+
+If "Arduino.h" can't be found, make sure heuristic search is enabled in indexer options in
+Eclipse.
 
 Circuit Pins
 ------------

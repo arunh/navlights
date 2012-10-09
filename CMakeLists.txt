@@ -1,13 +1,37 @@
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/cmake/ArduinoToolchain.cmake)
+################################################################################
+# NAVLIGHTS BUILD
+################################################################################
 
 cmake_minimum_required(VERSION 2.8)
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/cmake/ArduinoToolchain.cmake)
+project(ArduinoNavLights)
 
-project(navlights)
+################################################################################
+# Compiler options
+################################################################################
 
 set(CMAKE_C_FLAGS "-std=c99 -Os")
 
+
+################################################################################
+# Board options
+################################################################################
+
 set(ARDUINO_DEFAULT_BOARD nano328)
 set(ARDUINO_DEFAULT_PORT /dev/tty.usbserial-A901C77G)
+set(ARDUINO_IO_DEFINE __AVR_ATmega328P__)
+
+#Hack around Eclipse indexer ignoring the '-mmcu=' compiler option.
+#Have a look in avr/io.h to deduce correct define for your board.
+if (CMAKE_EXTRA_GENERATOR)
+  message("-- Added preprocessor define for generator: ${ARDUINO_IO_DEFINE}")
+  add_definitions( -D${ARDUINO_IO_DEFINE} )
+endif()
+
+
+################################################################################
+# Navlights firmware
+################################################################################
 
 set(src_root src/main/c)
 set(inc_root src/main/include)
