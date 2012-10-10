@@ -49,6 +49,31 @@ volatile uint16_t rx_signal_shared;
 //Non-volatile as only used in isr (consider making static inside isr)
 uint32_t rx_signal_start;
 
+#define PIN_HIGH 0x01
+#define PIN_LOW 0x00
+
+void digital_write_port_d(uint8_t pin, uint8_t val) {
+	ATOMIC_BLOCK ( ATOMIC_RESTORESTATE ) {
+		if (val == PIN_LOW) {
+			PORTD &= ~_BV(pin);
+		} else {
+			PORTD |= _BV(pin);
+		}
+	}
+}
+
+uint8_t digital_read_port_d(uint8_t pin) {
+	if (PIND & _BV(pin)) {
+		return PIN_HIGH;
+	}
+	return PIN_LOW;
+}
+
+void set_pin_mode_output_port_d(uint8_t pin) {
+	ATOMIC_BLOCK ( ATOMIC_RESTORESTATE ) {
+		DDRD |= _BV(pin);
+	}
+}
 
 uint16_t get_next_counter() {
 	static uint8_t idx = 0;
@@ -118,12 +143,12 @@ void core_loop() {
 
 			//Navigation lights
 			if (circuit_state_changed(prev_circuit_state, current_circuit_state, NAVIGATION_ON)) {
-				digitalWrite(NAVIGATION_PIN, current_circuit_state & NAVIGATION_ON);
+				digital_write_port_d(NAVIGATION_PIN, current_circuit_state & NAVIGATION_ON);
 			}
 
 			//Landing lights
 			if (circuit_state_changed(prev_circuit_state, current_circuit_state, LANDING_ON)) {
-				digitalWrite(LANDING_PIN, current_circuit_state & LANDING_ON);
+				digital_write_port_d(LANDING_PIN, current_circuit_state & LANDING_ON);
 			}
 
 		}
@@ -133,11 +158,11 @@ void core_loop() {
 			//Strobe lights
 			if (current_circuit_state & STROBE_ON) {
 				//Flash the circuit
-				digitalWrite(STROBE_PIN, digitalRead(STROBE_PIN) ^ 1);
+				digital_write_port_d(STROBE_PIN, digital_read_port_d(STROBE_PIN) ^ 1);
 			}
 			else {
 				//Switch off the circuit
-				digitalWrite(STROBE_PIN, 0);
+				digital_write_port_d(STROBE_PIN, PIN_LOW);
 			}
 
 			// Set next counter delay
@@ -223,7 +248,8 @@ void setup_rx_interrupt() {
 }
 
 ISR( INT0_vect ) {
-	if (digitalRead(RX_SIGNAL_PIN) == HIGH) {
+	//TODO: Remove Arduino - micros()
+	if (digital_read_port_d(RX_SIGNAL_PIN) == PIN_HIGH) {
 		rx_signal_start = micros();
 	} else {
 		rx_signal_shared = (uint16_t) (micros() - rx_signal_start);
@@ -231,10 +257,10 @@ ISR( INT0_vect ) {
 	}
 }
 
-
 // Main entry point
 int main(void) {
 
+	//TODO: Remove Wiring - init()
 	init();
 
 	//Initialise logger, redirect stdin/stdout to serial
@@ -250,10 +276,12 @@ int main(void) {
 	setup_timer();
 
 	//Set pin states
-	digitalWrite(NAVIGATION_PIN, 0);
-	digitalWrite(LANDING_PIN, 0);
-	digitalWrite(STROBE_PIN, 0);
-	pinMode(STROBE_PIN, OUTPUT); //Needed to do digitalRead ^ 1 flip
+	digital_write_port_d(NAVIGATION_PIN, PIN_LOW);
+	digital_write_port_d(LANDING_PIN, PIN_LOW);
+	digital_write_port_d(STROBE_PIN, PIN_LOW);
+
+	//Needed to be able to do digital_read_port_d ^ 1
+	set_pin_mode_output_port_d(STROBE_PIN);
 
 	//Enter loop
 	core_loop();
