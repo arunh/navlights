@@ -179,12 +179,7 @@ void core_loop() {
 
 // ISR to handle interrupts on the Rx signal pin
 void isr_rx_signal() {
-	if (digitalRead(RX_SIGNAL_PIN) == HIGH) {
-		rx_signal_start = micros();
-	} else {
-		rx_signal_shared = (uint16_t) (micros() - rx_signal_start);
-		event_flags_shared |= RX_SIGNAL_EVT;
-	}
+
 }
 
 void setup_timer() {
@@ -219,6 +214,24 @@ ISR( TIMER1_COMPA_vect) {
 	event_flags_shared |= TIMER_1_EVT;
 }
 
+
+void setup_rx_interrupt() {
+	//Configure external interrupt 0 to react on change
+	#define CHANGE 1
+	EICRA = (EICRA & ~((1 << ISC00) | (1 << ISC01))) | (CHANGE << ISC00);
+    EIMSK |= (1 << INT0);
+}
+
+ISR( INT0_vect ) {
+	if (digitalRead(RX_SIGNAL_PIN) == HIGH) {
+		rx_signal_start = micros();
+	} else {
+		rx_signal_shared = (uint16_t) (micros() - rx_signal_start);
+		event_flags_shared |= RX_SIGNAL_EVT;
+	}
+}
+
+
 // Main entry point
 int main(void) {
 
@@ -231,7 +244,7 @@ int main(void) {
 	printf("Navlights version: %s\n", VERSION);
 
 	//Attach Rx interrupt
-	attachInterrupt(RX_SIGNAL_INT, isr_rx_signal, CHANGE);
+	setup_rx_interrupt();
 
 	//Attach timer interrupt
 	setup_timer();
