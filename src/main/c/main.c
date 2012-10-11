@@ -1,10 +1,11 @@
 #include <util/atomic.h>
 #include <avr/sleep.h>
 
-#include "Arduino.h"
 #include "uart.h"
+#include "core.h"
 
 #define VERSION	"0.1"
+
 
 //Physical connectivity [ 8FG(SA) -> Rx(5) -> Arduino(2) ]
 #define RX_SIGNAL_PIN	2
@@ -13,10 +14,8 @@
 #define STROBE_PIN		6
 
 //Switch positions (1000=min, 2000=max)
-//lo if (rx_signal > X)
-#define SWITCH_OFF_THRESHOLD	1800
-//hi if (rx_signal < X)
-#define SWITCH_ON_THRESHOLD		1200
+#define SWITCH_OFF_THRESHOLD	1800	//lo if (rx_signal > X)
+#define SWITCH_ON_THRESHOLD		1200	//hi if (rx_signal < X)
 
 //Flags to indicate which lighting circuits are on
 #define NAVIGATION_ON	1
@@ -24,12 +23,9 @@
 #define LANDING_ON		4
 
 //Precomputed circuit state flags
-//000
-#define CIRCUIT_ALL_OFF			0
-//011
-#define CIRCUIT_NAV_AND_STROBE	3
-//111
-#define CIRCUIT_ALL_ON			7
+#define CIRCUIT_ALL_OFF			0 //000
+#define CIRCUIT_NAV_AND_STROBE	3 //011
+#define CIRCUIT_ALL_ON			7 //111
 
 //Interrupts: int0 -> digital 2
 #define RX_SIGNAL_INT			0
@@ -49,31 +45,6 @@ volatile uint16_t rx_signal_shared;
 //Non-volatile as only used in isr (consider making static inside isr)
 uint32_t rx_signal_start;
 
-#define PIN_HIGH 0x01
-#define PIN_LOW 0x00
-
-void digital_write_port_d(uint8_t pin, uint8_t val) {
-	ATOMIC_BLOCK ( ATOMIC_RESTORESTATE ) {
-		if (val == PIN_LOW) {
-			PORTD &= ~_BV(pin);
-		} else {
-			PORTD |= _BV(pin);
-		}
-	}
-}
-
-uint8_t digital_read_port_d(uint8_t pin) {
-	if (PIND & _BV(pin)) {
-		return PIN_HIGH;
-	}
-	return PIN_LOW;
-}
-
-void set_pin_mode_output_port_d(uint8_t pin) {
-	ATOMIC_BLOCK ( ATOMIC_RESTORESTATE ) {
-		DDRD |= _BV(pin);
-	}
-}
 
 uint16_t get_next_counter() {
 	static uint8_t idx = 0;
@@ -202,11 +173,6 @@ void core_loop() {
 
 }
 
-// ISR to handle interrupts on the Rx signal pin
-void isr_rx_signal() {
-
-}
-
 void setup_timer() {
 
 	// See ATmega*8P data sheet - section 15.11
@@ -248,7 +214,6 @@ void setup_rx_interrupt() {
 }
 
 ISR( INT0_vect ) {
-	//TODO: Remove Arduino - micros()
 	if (digital_read_port_d(RX_SIGNAL_PIN) == PIN_HIGH) {
 		rx_signal_start = micros();
 	} else {
@@ -260,7 +225,6 @@ ISR( INT0_vect ) {
 // Main entry point
 int main(void) {
 
-	//TODO: Remove Wiring - init()
 	init();
 
 	//Initialise logger, redirect stdin/stdout to serial

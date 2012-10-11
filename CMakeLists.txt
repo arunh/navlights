@@ -19,13 +19,15 @@ set(CMAKE_C_FLAGS "-std=c99 -Os")
 
 set(ARDUINO_DEFAULT_BOARD nano328)
 set(ARDUINO_DEFAULT_PORT /dev/tty.usbserial-A901C77G)
-set(ARDUINO_IO_DEFINE __AVR_ATmega328P__)
 
-#Hack around Eclipse indexer ignoring the '-mmcu=' compiler option.
+#Set some defines to help Eclipse correctly resolve imports/definitions.
 #Have a look in avr/io.h to deduce correct define for your board.
+#WARNING: This is very chip specific
 if (CMAKE_EXTRA_GENERATOR)
+  set(ARDUINO_IO_DEFINE __AVR_ATmega328P__)
+  set(ARDUINO_F_CPU 16000000L)
   message("-- Added preprocessor define for generator: ${ARDUINO_IO_DEFINE}")
-  add_definitions( -D${ARDUINO_IO_DEFINE} )
+  add_definitions( -D${ARDUINO_IO_DEFINE} -DF_CPU=${ARDUINO_F_CPU})
 endif()
 
 
@@ -39,15 +41,16 @@ set(inc_root src/main/include)
 set(navlights_SRCS
   ${src_root}/main.c  
   ${src_root}/uart.c
+  ${src_root}/core.c
 )
 
 set(navlights_HDRS
   ${inc_root}/uart.h
+  ${inc_root}/core.h
 )
 
 include_directories(
   ${inc_root}
 )
 
-#generate_arduino_firmware(navlights NATIVE_AVR)
-generate_arduino_firmware(navlights)
+generate_arduino_firmware(navlights NATIVE_AVR)
