@@ -2,7 +2,8 @@
 #include <avr/sleep.h>
 
 #include "uart.h"
-#include "core.h"
+#include "time.h"
+#include "digital.h"
 
 #define VERSION	"0.1"
 
@@ -173,7 +174,7 @@ void core_loop() {
 
 }
 
-void setup_timer() {
+void setup_timer1_interrupt() {
 
 	// See ATmega*8P data sheet - section 15.11
 	// Nano clock speed is 16Mhz, we want an interrupt at rate of 10Hz
@@ -225,7 +226,11 @@ ISR( INT0_vect ) {
 // Main entry point
 int main(void) {
 
-	init();
+	//Enable interrupts
+	sei();
+
+	//Timer 0 used for micros()
+	init_timer0();
 
 	//Initialise logger, redirect stdin/stdout to serial
 	uart_init();
@@ -237,7 +242,7 @@ int main(void) {
 	setup_rx_interrupt();
 
 	//Attach timer interrupt
-	setup_timer();
+	setup_timer1_interrupt();
 
 	//Set pin states
 	digital_write_port_d(NAVIGATION_PIN, PIN_LOW);

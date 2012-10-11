@@ -1,19 +1,3 @@
-//INIT
-
-void init();
-
-//DIGITAL
-
-#define PIN_HIGH 0x01
-#define PIN_LOW 0x00
-
-void digital_write_port_d(uint8_t pin, uint8_t val);
-uint8_t digital_read_port_d(uint8_t pin);
-void set_pin_mode_output_port_d(uint8_t pin);
-
-
-//TIME
-
 #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
 
 #define clockCyclesPerMicrosecond() ( F_CPU / 1000000L )
@@ -29,4 +13,6 @@ void set_pin_mode_output_port_d(uint8_t pin);
 #define FRACT_INC ((MICROSECONDS_PER_TIMER0_OVERFLOW % 1000) >> 3)
 #define FRACT_MAX (1000 >> 3)
 
+//Prototypes
+void init_timer0();
 uint32_t micros();

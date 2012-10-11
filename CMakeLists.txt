@@ -41,12 +41,14 @@ set(inc_root src/main/include)
 set(navlights_SRCS
   ${src_root}/main.c  
   ${src_root}/uart.c
-  ${src_root}/core.c
+  ${src_root}/time.c
+  ${src_root}/digital.c
 )
 
 set(navlights_HDRS
   ${inc_root}/uart.h
-  ${inc_root}/core.h
+  ${inc_root}/time.h
+  ${inc_root}/digital.h
 )
 
 include_directories(
