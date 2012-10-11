@@ -49,5 +49,5 @@ include_directories(
   ${inc_root}
 )
 
+#generate_arduino_firmware(navlights NATIVE_AVR)
 generate_arduino_firmware(navlights)
-
