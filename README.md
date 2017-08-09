@@ -1,5 +1,5 @@
-RC Navigation Lights Controller
-===============================
+Arduino Lighting Driver
+=======================
 
 Author
 ------
